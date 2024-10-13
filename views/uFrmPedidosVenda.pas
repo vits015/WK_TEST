@@ -42,8 +42,7 @@ type
     edNumPedido: TEdit;
     lbNumPedidoEdit: TLabel;
     btnLimparCliente: TButton;
-    lbNumPedido: TLabel;
-    lbPedido: TLabel;
+    btnCancelarPedido: TButton;
     procedure FormCreate(Sender: TObject);
     procedure edCodigoProdutoExit(Sender: TObject);
     procedure btnAddProdutoClick(Sender: TObject);
@@ -52,8 +51,8 @@ type
     procedure btnSalvarPedidoClick(Sender: TObject);
     procedure cbClientesSelect(Sender: TObject);
     procedure btnLimparClienteClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
     procedure btnCarregarPedidoClick(Sender: TObject);
+    procedure btnCancelarPedidoClick(Sender: TObject);
   private
     { Private declarations }
     FConnection: TFDConnection;
@@ -72,8 +71,8 @@ type
     procedure ToggleExibitionPnCarregarPedidos;
     function SalvarPedido: boolean;
     procedure LimpaGrid;
-    procedure AtualizaNumPedido;
     procedure CarregaPedido;
+    function DeletePedido(ANumeroPedido:Integer):boolean;
   public
     { Public declarations }
     property CurrentState: TFormState read FCurrentState write SetCurrentState; // Propriedade de estado
@@ -120,11 +119,6 @@ begin
 
     Query.ExecSQL;
 
-end;
-
-procedure TfrmPedidosVenda.AtualizaNumPedido;
-begin
-  lbNumPedido.Caption:= (pedidoController.getLastPedidoNumber+1).ToString();
 end;
 
 procedure TfrmPedidosVenda.AtualizaProdutoGrid(AProduto: TProduto;
@@ -176,9 +170,32 @@ begin
   ExibeProdutosGrid;
 end;
 
+procedure TfrmPedidosVenda.btnCancelarPedidoClick(Sender: TObject);
+begin
+  try
+    if (DeletePedido(StrToInt(edNumPedido.Text)) ) then
+      Application.MessageBox('Pedido Excluído com sucesso!','Sucesso');
+  except
+    on e:exception do
+    begin
+      Application.MessageBox(Pchar(e.Message),'Erro',MB_ICONERROR);
+    end;
+  end;
+
+  ExibeProdutosGrid;
+end;
+
 procedure TfrmPedidosVenda.btnCarregarPedidoClick(Sender: TObject);
 begin
-  CarregaPedido;
+  try
+    CarregaPedido;
+  except
+    on e:exception do
+    begin
+      Application.MessageBox(PChar(e.Message),'Erro',MB_ICONERROR);
+    end;
+
+  end;
 end;
 
 procedure TfrmPedidosVenda.btnLimparClienteClick(Sender: TObject);
@@ -190,12 +207,17 @@ end;
 procedure TfrmPedidosVenda.btnSalvarPedidoClick(Sender: TObject);
 begin
   try
+    if cbClientes.ItemIndex < 0 then
+    begin
+      Application.MessageBox('O campo cliente é obrigatório!','Atenção',MB_ICONEXCLAMATION);
+      cbClientes.SetFocus;
+      exit;
+    end;
     if (SalvarPedido) then
     begin
       Application.MessageBox('Pedido Gravado com sucesso!','Sucesso');
       LimpaGrid;
       ExibeProdutosGrid;
-      AtualizaNumPedido;
     end;
   except
     on E:Exception do
@@ -225,10 +247,17 @@ end;
 
 procedure TfrmPedidosVenda.CarregaPedido;
 begin
-  dbgProdutos.DataSource:= pedidoController.getPedido(StrToInt(edNumPedido.Text));
-  lbValorTotalPedido.Caption:= dbgProdutos.Fields[3].Text;
-  cbClientes.ItemIndex := StrToInt(dbgProdutos.Fields[2].Text);
-  lbNumPedido.caption := dbgProdutos.Fields[0].Text;
+  try
+    dbgProdutos.DataSource:= pedidoController.getPedido(StrToInt(edNumPedido.Text));
+    lbValorTotalPedido.Caption:= dbgProdutos.Fields[3].Text;
+    cbClientes.ItemIndex := StrToInt(dbgProdutos.Fields[2].Text);
+  except
+    on E:Exception do
+    begin
+      raise Exception.CreateFmt('Pedido não encontrado. ', [E.Message]);
+    end;
+
+  end;
 end;
 
 procedure TfrmPedidosVenda.CarregaProduto(ACodigo: Integer);
@@ -292,8 +321,24 @@ begin
   end;
 end;
 
+function TfrmPedidosVenda.DeletePedido(ANumeroPedido:Integer) : boolean;
+begin
+  try
+    pedidoController.DeletePedido(ANumeroPedido);
+    result:= true;
+  except
+    on e:exception do
+    begin
+      Result := false;
+      Application.MessageBox(Pchar(e.Message),'Erro',MB_ICONERROR);
+    end;
+  end;
+end;
+
 procedure TfrmPedidosVenda.DestroyControllers;
 begin
+  pedidoController.Free;
+  produtopedidoController.Free;
   clienteController.Free;
   produtoController.Free;
 end;
@@ -329,11 +374,6 @@ begin
   CarregaClientesCombobox;
 end;
 
-procedure TfrmPedidosVenda.FormShow(Sender: TObject);
-begin
-  AtualizaNumPedido;
-end;
-
 procedure TfrmPedidosVenda.LimpaGrid;
 begin
   Query.Close;
@@ -363,7 +403,7 @@ begin
   Query.SQL.Clear;
 
   try
-    Pedido := TPedido.Create(StrToInt(lbNumPedido.Caption),
+    Pedido := TPedido.Create(0,
                             now(),
                             cbClientes.ItemIndex+1,
                             StrToFloat(lbValorTotalPedido.Caption));
@@ -373,7 +413,7 @@ begin
 
     while not Query.eof do
     begin
-      Pedido.AdicionarProduto(TProdutoPedido.Create(StrToInt(lbNumPedido.Caption),
+      Pedido.AdicionarProduto(TProdutoPedido.Create(0,
                               Query.FieldByName('Codigo').AsInteger,
                               Query.FieldByName('Quantidade').AsInteger,
                               Query.FieldByName('Valor_unitario').AsFloat) );

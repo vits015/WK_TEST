@@ -2,8 +2,8 @@ object frmPedidosVenda: TfrmPedidosVenda
   Left = 0
   Top = 0
   Caption = 'Pedidos de Venda'
-  ClientHeight = 648
-  ClientWidth = 884
+  ClientHeight = 647
+  ClientWidth = 880
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,7 +11,6 @@ object frmPedidosVenda: TfrmPedidosVenda
   Font.Name = 'Segoe UI'
   Font.Style = []
   OnCreate = FormCreate
-  OnShow = FormShow
   TextHeight = 15
   object lbClientes: TLabel
     Left = 17
@@ -19,32 +18,6 @@ object frmPedidosVenda: TfrmPedidosVenda
     Width = 100
     Height = 15
     Caption = 'Selecione o Cliente'
-  end
-  object lbNumPedido: TLabel
-    Left = 836
-    Top = 8
-    Width = 13
-    Height = 32
-    Caption = '0'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -24
-    Font.Name = 'Segoe UI'
-    Font.Style = []
-    ParentFont = False
-  end
-  object lbPedido: TLabel
-    Left = 702
-    Top = 8
-    Width = 120
-    Height = 32
-    Caption = 'Pedido N'#186': '
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -24
-    Font.Name = 'Segoe UI'
-    Font.Style = []
-    ParentFont = False
   end
   object cbClientes: TComboBox
     Left = 17
@@ -151,22 +124,19 @@ object frmPedidosVenda: TfrmPedidosVenda
   end
   object pnRodape: TPanel
     Left = 0
-    Top = 607
-    Width = 884
+    Top = 606
+    Width = 880
     Height = 41
     Align = alBottom
     TabOrder = 4
-    ExplicitTop = 529
-    ExplicitWidth = 876
     object Panel1: TPanel
       AlignWithMargins = True
-      Left = 653
+      Left = 649
       Top = 4
       Width = 227
       Height = 33
       Align = alRight
       TabOrder = 0
-      ExplicitLeft = 645
       object lbValorTotalPedido: TLabel
         AlignWithMargins = True
         Left = 202
@@ -192,8 +162,8 @@ object frmPedidosVenda: TfrmPedidosVenda
     end
   end
   object btnSalvarPedido: TButton
-    Left = 762
-    Top = 552
+    Left = 767
+    Top = 559
     Width = 105
     Height = 41
     Caption = 'Salvar Pedido'
@@ -203,19 +173,19 @@ object frmPedidosVenda: TfrmPedidosVenda
   object pnCarregarPedido: TPanel
     Left = 346
     Top = 23
-    Width = 295
-    Height = 88
+    Width = 303
+    Height = 112
     TabOrder = 6
     object lbNumPedidoEdit: TLabel
-      Left = 152
-      Top = 20
+      Left = 160
+      Top = 32
       Width = 54
       Height = 15
       Caption = 'N'#186' Pedido'
     end
     object btnCarregarPedido: TButton
       Left = 20
-      Top = 25
+      Top = 8
       Width = 105
       Height = 39
       Caption = 'Carregar Pedido'
@@ -223,11 +193,20 @@ object frmPedidosVenda: TfrmPedidosVenda
       OnClick = btnCarregarPedidoClick
     end
     object edNumPedido: TEdit
-      Left = 147
-      Top = 41
+      Left = 155
+      Top = 53
       Width = 121
       Height = 23
       TabOrder = 1
+    end
+    object btnCancelarPedido: TButton
+      Left = 20
+      Top = 64
+      Width = 105
+      Height = 39
+      Caption = 'Cancelar Pedido'
+      TabOrder = 2
+      OnClick = btnCancelarPedidoClick
     end
   end
   object btnLimparCliente: TButton

@@ -16,6 +16,7 @@ type
       function getPedidos : TObjectList<TPedido>;
       function getPedido(ANumeroPedido : Integer) : TDataSource;
       function getLastPedidoNumber : Integer;
+      procedure DeletePedido(ACodigo:Integer);
   end;
 
 implementation
@@ -25,6 +26,35 @@ implementation
 constructor TPedidoController.Create(AConnection: TFDConnection);
 begin
   FConnection := AConnection;
+end;
+
+procedure TPedidoController.DeletePedido(ACodigo: Integer);
+var
+  Query :TFDQuery;
+begin
+  Query := TFDQuery.Create(nil);
+  Query.Connection := FConnection;
+  try
+    Query.Connection.StartTransaction;
+    Query.SQL.Text := 'DELETE FROM produtos_pedido WHERE numero_pedido = :numero_pedido;';
+    Query.ParamByName('numero_pedido').Value := ACodigo;
+    Query.ExecSQL;
+
+    Query.SQL.Clear;
+    Query.Close;
+    Query.SQL.Text:= 'DELETE FROM Pedidos WHERE numero_pedido = :numero_pedido;';
+    Query.ParamByName('numero_pedido').Value := ACodigo;
+    Query.ExecSQL;
+
+    Query.Connection.Commit;
+  except
+    on e:Exception do
+    begin
+      Query.Connection.Rollback;
+      raise Exception.Create('Error ao deletar pedido: '+ e.Message);
+    end;
+  end;
+  Query.Free;
 end;
 
 function TPedidoController.getLastPedidoNumber: Integer;
@@ -81,7 +111,7 @@ begin
     on e:exception do
     begin
       ds.Free;
-      raise Exception.Create('Erro ao obter Pedido: '+e.Message);
+      raise Exception.CreateFmt('Erro ao obter Pedido: %s', [E.Message]);
     end;
   end;
 end;
@@ -142,11 +172,12 @@ begin
     Query.SQL.Clear;
 
     Query.SQL.Text := 'INSERT INTO produtos_pedido '
-                    + '(numero_pedido, codigo_produto, quantidade, valor_unitario, valor_total) '
-                    + 'VALUES (:numero_pedido, :codigo_produto, :quantidade, :valor_unitario, :valor_total) ';
+                    + '( numero_pedido, codigo_produto, quantidade, valor_unitario, valor_total) '
+                    + 'VALUES ( :numero_pedido, :codigo_produto, :quantidade, :valor_unitario, :valor_total) ';
 
     for produtoPedido in APedido.Produtos do
     begin
+      produtoPedido.NumeroPedido := getLastPedidoNumber;
       Query.ParamByName('numero_pedido').Value := produtoPedido.NumeroPedido;
       Query.ParamByName('codigo_produto').Value := produtoPedido.CodigoProduto;
       Query.ParamByName('quantidade').Value := produtoPedido.Quantidade;
