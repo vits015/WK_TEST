@@ -43,6 +43,7 @@ type
     lbNumPedidoEdit: TLabel;
     btnLimparCliente: TButton;
     btnCancelarPedido: TButton;
+    pnCliente: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure edCodigoProdutoExit(Sender: TObject);
     procedure btnAddProdutoClick(Sender: TObject);
@@ -282,7 +283,6 @@ begin
   FConnection.Params.LoadFromFile('config.ini');  // Carregar parâmetros do .ini
   try
     FConnection.Connected := True;
-    ShowMessage('Conectado com sucesso!');
   except
     on E: Exception do
       ShowMessage('Erro na conexão: ' + E.Message);
