@@ -26,9 +26,9 @@ var
   Clientes: TObjectList<TCliente>;
 begin
   Clientes := TObjectList<TCliente>.Create; // Inicializa a lista
-  Query := TFDQuery.Create(nil); // Cria a query
-  try
-    Query.Connection := FConnection; // Atribui a conexão
+  Query := TFDQuery.Create(nil); // Cria a query  
+  try    
+    Query.Connection := FConnection; // Atribui a conexï¿½o
     Query.SQL.Text := 'SELECT Codigo, Nome, Cidade, UF FROM Clientes order by codigo';
     Query.Open;
 

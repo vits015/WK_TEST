@@ -2,8 +2,8 @@ object frmPedidosVenda: TfrmPedidosVenda
   Left = 0
   Top = 0
   Caption = 'Pedidos de Venda'
-  ClientHeight = 530
-  ClientWidth = 999
+  ClientHeight = 648
+  ClientWidth = 884
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,25 +11,53 @@ object frmPedidosVenda: TfrmPedidosVenda
   Font.Name = 'Segoe UI'
   Font.Style = []
   OnCreate = FormCreate
+  OnShow = FormShow
   TextHeight = 15
   object lbClientes: TLabel
-    Left = 40
-    Top = 43
+    Left = 17
+    Top = 35
     Width = 100
     Height = 15
     Caption = 'Selecione o Cliente'
   end
+  object lbNumPedido: TLabel
+    Left = 836
+    Top = 8
+    Width = 13
+    Height = 32
+    Caption = '0'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -24
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    ParentFont = False
+  end
+  object lbPedido: TLabel
+    Left = 702
+    Top = 8
+    Width = 120
+    Height = 32
+    Caption = 'Pedido N'#186': '
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -24
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    ParentFont = False
+  end
   object cbClientes: TComboBox
-    Left = 40
-    Top = 64
+    Left = 17
+    Top = 56
     Width = 177
     Height = 23
     TabOrder = 0
     Text = 'cbClientes'
+    OnSelect = cbClientesSelect
   end
   object pnProduto: TPanel
-    Left = 40
-    Top = 93
+    Left = 8
+    Top = 141
     Width = 865
     Height = 97
     TabOrder = 1
@@ -100,8 +128,8 @@ object frmPedidosVenda: TfrmPedidosVenda
     end
   end
   object btnAddProduto: TButton
-    Left = 794
-    Top = 196
+    Left = 762
+    Top = 244
     Width = 111
     Height = 33
     Caption = 'Inserir Produto'
@@ -109,8 +137,8 @@ object frmPedidosVenda: TfrmPedidosVenda
     OnClick = btnAddProdutoClick
   end
   object dbgProdutos: TDBGrid
-    Left = 40
-    Top = 235
+    Left = 8
+    Top = 283
     Width = 865
     Height = 238
     TabOrder = 3
@@ -123,45 +151,93 @@ object frmPedidosVenda: TfrmPedidosVenda
   end
   object pnRodape: TPanel
     Left = 0
-    Top = 489
-    Width = 999
+    Top = 607
+    Width = 884
     Height = 41
     Align = alBottom
     TabOrder = 4
-    ExplicitLeft = 329
-    ExplicitTop = 456
-    ExplicitWidth = 185
+    ExplicitTop = 529
+    ExplicitWidth = 876
     object Panel1: TPanel
       AlignWithMargins = True
-      Left = 768
+      Left = 653
       Top = 4
       Width = 227
       Height = 33
       Align = alRight
       TabOrder = 0
+      ExplicitLeft = 645
       object lbValorTotalPedido: TLabel
         AlignWithMargins = True
-        Left = 168
+        Left = 202
         Top = 4
-        Width = 55
+        Width = 21
         Height = 25
         Align = alRight
         Alignment = taCenter
         Caption = '0,00'
+        ExplicitHeight = 15
       end
       object Label1: TLabel
         AlignWithMargins = True
-        Left = 81
+        Left = 115
         Top = 4
         Width = 81
         Height = 25
         Align = alRight
         Alignment = taCenter
         Caption = 'Valor Total: R$ -'
-        ExplicitLeft = 84
         ExplicitHeight = 15
       end
     end
+  end
+  object btnSalvarPedido: TButton
+    Left = 762
+    Top = 552
+    Width = 105
+    Height = 41
+    Caption = 'Salvar Pedido'
+    TabOrder = 5
+    OnClick = btnSalvarPedidoClick
+  end
+  object pnCarregarPedido: TPanel
+    Left = 346
+    Top = 23
+    Width = 295
+    Height = 88
+    TabOrder = 6
+    object lbNumPedidoEdit: TLabel
+      Left = 152
+      Top = 20
+      Width = 54
+      Height = 15
+      Caption = 'N'#186' Pedido'
+    end
+    object btnCarregarPedido: TButton
+      Left = 20
+      Top = 25
+      Width = 105
+      Height = 39
+      Caption = 'Carregar Pedido'
+      TabOrder = 0
+      OnClick = btnCarregarPedidoClick
+    end
+    object edNumPedido: TEdit
+      Left = 147
+      Top = 41
+      Width = 121
+      Height = 23
+      TabOrder = 1
+    end
+  end
+  object btnLimparCliente: TButton
+    Left = 200
+    Top = 55
+    Width = 97
+    Height = 25
+    Caption = 'Limpar Cliente'
+    TabOrder = 7
+    OnClick = btnLimparClienteClick
   end
   object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
     VendorLib = 'LIBMYSQLx86.dll'

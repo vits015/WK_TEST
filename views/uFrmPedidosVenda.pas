@@ -9,7 +9,7 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MySQL,
   FireDAC.Phys.MySQLDef, FireDAC.VCLUI.Wait, Data.DB, FireDAC.Comp.Client,
   Vcl.StdCtrls, Vcl.Grids, Vcl.ExtCtrls, uClienteController, uCliente,System.Generics.Collections,
-  uProduto, uProdutoController, Vcl.DBGrids;
+  uProduto, uProdutoController, uProdutoPedidoController, uPedidoController, Vcl.DBGrids;
 
 
 type
@@ -36,11 +36,24 @@ type
     lbValorTotalPedido: TLabel;
     Panel1: TPanel;
     Label1: TLabel;
+    btnSalvarPedido: TButton;
+    btnCarregarPedido: TButton;
+    pnCarregarPedido: TPanel;
+    edNumPedido: TEdit;
+    lbNumPedidoEdit: TLabel;
+    btnLimparCliente: TButton;
+    lbNumPedido: TLabel;
+    lbPedido: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure edCodigoProdutoExit(Sender: TObject);
     procedure btnAddProdutoClick(Sender: TObject);
     procedure dbgProdutosKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure btnSalvarPedidoClick(Sender: TObject);
+    procedure cbClientesSelect(Sender: TObject);
+    procedure btnLimparClienteClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnCarregarPedidoClick(Sender: TObject);
   private
     { Private declarations }
     FConnection: TFDConnection;
@@ -56,6 +69,11 @@ type
     procedure AtualizaProdutoGrid( AProduto: TProduto; AQuantidade: Integer);
     procedure ExibeProdutosGrid;
     procedure AtualizaValorTotalPedido;
+    procedure ToggleExibitionPnCarregarPedidos;
+    function SalvarPedido: boolean;
+    procedure LimpaGrid;
+    procedure AtualizaNumPedido;
+    procedure CarregaPedido;
   public
     { Public declarations }
     property CurrentState: TFormState read FCurrentState write SetCurrentState; // Propriedade de estado
@@ -67,11 +85,15 @@ var
   Query : TFDQuery;
   clienteController: TClienteController;
   produtoController: TProdutoController;
+  produtopedidoController : TProdutopedidoController;
+  pedidoController : TPedidoController ;
 
 
 implementation
 
 {$R *.dfm}
+
+uses uProdutoPedido, uPedido;
 
 { TForm1 }
 
@@ -98,6 +120,11 @@ begin
 
     Query.ExecSQL;
 
+end;
+
+procedure TfrmPedidosVenda.AtualizaNumPedido;
+begin
+  lbNumPedido.Caption:= (pedidoController.getLastPedidoNumber+1).ToString();
 end;
 
 procedure TfrmPedidosVenda.AtualizaProdutoGrid(AProduto: TProduto;
@@ -149,6 +176,35 @@ begin
   ExibeProdutosGrid;
 end;
 
+procedure TfrmPedidosVenda.btnCarregarPedidoClick(Sender: TObject);
+begin
+  CarregaPedido;
+end;
+
+procedure TfrmPedidosVenda.btnLimparClienteClick(Sender: TObject);
+begin
+  cbClientes.ItemIndex := -1;
+  ToggleExibitionPnCarregarPedidos;
+end;
+
+procedure TfrmPedidosVenda.btnSalvarPedidoClick(Sender: TObject);
+begin
+  try
+    if (SalvarPedido) then
+    begin
+      Application.MessageBox('Pedido Gravado com sucesso!','Sucesso');
+      LimpaGrid;
+      ExibeProdutosGrid;
+      AtualizaNumPedido;
+    end;
+  except
+    on E:Exception do
+    begin
+      Application.MessageBox(Pchar(e.Message),'Erro', MB_ICONERROR);
+    end;
+  end;
+end;
+
 procedure TfrmPedidosVenda.CarregaClientesCombobox;
 var
    Clientes: TObjectList<TCliente>;
@@ -167,6 +223,14 @@ begin
   end;
 end;
 
+procedure TfrmPedidosVenda.CarregaPedido;
+begin
+  dbgProdutos.DataSource:= pedidoController.getPedido(StrToInt(edNumPedido.Text));
+  lbValorTotalPedido.Caption:= dbgProdutos.Fields[3].Text;
+  cbClientes.ItemIndex := StrToInt(dbgProdutos.Fields[2].Text);
+  lbNumPedido.caption := dbgProdutos.Fields[0].Text;
+end;
+
 procedure TfrmPedidosVenda.CarregaProduto(ACodigo: Integer);
 var
   produto:TProduto;
@@ -174,6 +238,11 @@ begin
   produto := produtoController.getProdutos(ACodigo).First;
   edValorUnitarioProduto.Text := produto.PrecoVenda.ToString();
   edDescricaoProduto.Text := produto.Descricao;
+end;
+
+procedure TfrmPedidosVenda.cbClientesSelect(Sender: TObject);
+begin
+  ToggleExibitionPnCarregarPedidos;
 end;
 
 procedure TfrmPedidosVenda.ConfigurarConexao;
@@ -193,6 +262,8 @@ end;
 
 procedure TfrmPedidosVenda.CreateControllers;
 begin
+  produtopedidoController:= TProdutoPedidoController.Create(FConnection);
+  pedidoController := TPedidoController.Create(FConnection);
   clienteController := TClienteController.Create(FConnection);
   produtoController := TProdutoController.Create(FConnection);
 end;
@@ -258,6 +329,19 @@ begin
   CarregaClientesCombobox;
 end;
 
+procedure TfrmPedidosVenda.FormShow(Sender: TObject);
+begin
+  AtualizaNumPedido;
+end;
+
+procedure TfrmPedidosVenda.LimpaGrid;
+begin
+  Query.Close;
+  Query.SQL.Clear;
+  Query.SQL.Text := 'DELETE FROM tmp_produtos';
+  Query.ExecSQL;
+end;
+
 procedure TfrmPedidosVenda.RemoveProdutoGrid(ACodigo: Integer);
 var
   Query:TFDQuery;
@@ -271,10 +355,54 @@ begin
 
 end;
 
+function TfrmPedidosVenda.SalvarPedido : boolean;
+var
+  Pedido: TPedido;
+begin
+  Query.Close;
+  Query.SQL.Clear;
+
+  try
+    Pedido := TPedido.Create(StrToInt(lbNumPedido.Caption),
+                            now(),
+                            cbClientes.ItemIndex+1,
+                            StrToFloat(lbValorTotalPedido.Caption));
+
+    Query.SQL.Text := 'SELECT Codigo, Descricao, preco_venda as Valor_unitario, Quantidade, (preco_venda*Quantidade) as Valor_Total FROM tmp_Produtos';
+    Query.Open;
+
+    while not Query.eof do
+    begin
+      Pedido.AdicionarProduto(TProdutoPedido.Create(StrToInt(lbNumPedido.Caption),
+                              Query.FieldByName('Codigo').AsInteger,
+                              Query.FieldByName('Quantidade').AsInteger,
+                              Query.FieldByName('Valor_unitario').AsFloat) );
+      Query.Next;
+    end;
+    pedidoController.PostPedido(Pedido);
+    result:= true;
+  except
+    on E:Exception do
+    begin
+      raise Exception.Create('Error Message'+E.Message);
+      result := false;
+    end;
+  end;
+
+end;
+
 procedure TfrmPedidosVenda.SetCurrentState(Value: TFormState);
 begin
   FCurrentState := Value;
   UpdateForm;
+end;
+
+procedure TfrmPedidosVenda.ToggleExibitionPnCarregarPedidos;
+begin
+  if cbClientes.ItemIndex < 0 then
+    pnCarregarPedido.Visible := true
+  else
+    pnCarregarPedido.Visible := false;
 end;
 
 procedure TfrmPedidosVenda.UpdateForm;

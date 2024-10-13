@@ -14,7 +14,7 @@ type
     FValorTotal: Double;
     FProdutos: TObjectList<TProdutoPedido>;
   public
-    constructor Create(ANumero: Integer; ADataEmissao: TDateTime; ACodigoCliente: Integer; AValorTotal: Double);
+    constructor Create(ANumeroPedido:Integer; ADataEmissao: TDateTime; ACodigoCliente: Integer; AValorTotal: Double);
     destructor Destroy; override;
 
     property Numero: Integer read FNumero write FNumero;
@@ -29,9 +29,9 @@ type
 
 implementation
 
-constructor TPedido.Create(ANumero: Integer; ADataEmissao: TDateTime; ACodigoCliente: Integer; AValorTotal: Double);
+constructor TPedido.Create(ANumeroPedido:Integer; ADataEmissao: TDateTime; ACodigoCliente: Integer; AValorTotal: Double);
 begin
-  FNumero := ANumero;
+  FNumero := ANumeroPedido;
   FDataEmissao := ADataEmissao;
   FCodigoCliente := ACodigoCliente;
   FValorTotal := AValorTotal;

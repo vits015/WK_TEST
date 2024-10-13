@@ -108,6 +108,8 @@
         <DCCReference Include="models\uProdutoPedido.pas"/>
         <DCCReference Include="controllers\uClienteController.pas"/>
         <DCCReference Include="controllers\uProdutoController.pas"/>
+        <DCCReference Include="controllers\uProdutoPedidoController.pas"/>
+        <DCCReference Include="controllers\uPedidoController.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -8,7 +8,9 @@ uses
   uPedido in 'models\uPedido.pas',
   uProdutoPedido in 'models\uProdutoPedido.pas',
   uClienteController in 'controllers\uClienteController.pas',
-  uProdutoController in 'controllers\uProdutoController.pas';
+  uProdutoController in 'controllers\uProdutoController.pas',
+  uProdutoPedidoController in 'controllers\uProdutoPedidoController.pas',
+  uPedidoController in 'controllers\uPedidoController.pas';
 
 {$R *.res}
 
