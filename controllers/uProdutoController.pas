@@ -75,6 +75,8 @@ begin
     Query.ParamByName('codigo').Value := ACodigo;
     Query.Open;
 
+    if Query.RecordCount<1 then
+      raise Exception.Create('Não foi encontrado nenhum produto com esse código!');
     while not Query.Eof do
     begin
       Produto := TProduto.Create( Query.FieldByName('Codigo').AsInteger,
@@ -90,7 +92,7 @@ begin
     on E:Exception do
     begin      
       Produtos.Free;
-      raise Exception.Create('Erro ao carregar produtos: '+ E.Message);
+      raise Exception.CreateFmt('Erro: '+E.Message, [E.Message]);
     end;
   end;
   Query.Free;

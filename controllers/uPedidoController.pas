@@ -39,6 +39,8 @@ begin
     Query.SQL.Text := 'DELETE FROM produtos_pedido WHERE numero_pedido = :numero_pedido;';
     Query.ParamByName('numero_pedido').Value := ACodigo;
     Query.ExecSQL;
+    if Query.RowsAffected<1 then
+      raise Exception.Create('Não foi encontrado nenhum pedido com esse número.');
 
     Query.SQL.Clear;
     Query.Close;
@@ -51,7 +53,7 @@ begin
     on e:Exception do
     begin
       Query.Connection.Rollback;
-      raise Exception.Create('Error ao deletar pedido: '+ e.Message);
+      raise Exception.Create('Erro ao deletar pedido: '+ e.Message);
     end;
   end;
   Query.Free;

@@ -9,7 +9,8 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MySQL,
   FireDAC.Phys.MySQLDef, FireDAC.VCLUI.Wait, Data.DB, FireDAC.Comp.Client,
   Vcl.StdCtrls, Vcl.Grids, Vcl.ExtCtrls, uClienteController, uCliente,System.Generics.Collections,
-  uProduto, uProdutoController, uProdutoPedidoController, uPedidoController, Vcl.DBGrids;
+  uProduto, uProdutoController, uProdutoPedidoController, uPedidoController, Vcl.DBGrids,
+  Vcl.Imaging.pngimage, ShellAPI, Vcl.Mask;
 
 
 type
@@ -44,6 +45,7 @@ type
     btnLimparCliente: TButton;
     btnCancelarPedido: TButton;
     pnCliente: TPanel;
+    Image1: TImage;
     procedure FormCreate(Sender: TObject);
     procedure edCodigoProdutoExit(Sender: TObject);
     procedure btnAddProdutoClick(Sender: TObject);
@@ -54,6 +56,11 @@ type
     procedure btnLimparClienteClick(Sender: TObject);
     procedure btnCarregarPedidoClick(Sender: TObject);
     procedure btnCancelarPedidoClick(Sender: TObject);
+    procedure edCodigoProdutoKeyPress(Sender: TObject; var Key: Char);
+    procedure edQtdProdutoKeyPress(Sender: TObject; var Key: Char);
+    procedure edValorUnitarioProdutoKeyPress(Sender: TObject; var Key: Char);
+    procedure edNumPedidoKeyPress(Sender: TObject; var Key: Char);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     FConnection: TFDConnection;
@@ -74,6 +81,14 @@ type
     procedure LimpaGrid;
     procedure CarregaPedido;
     function DeletePedido(ANumeroPedido:Integer):boolean;
+    function SomenteNumero(key:Char):Char;
+    function ValidaQtdProduto:boolean;
+    function ValidaCodigoProduto:boolean;
+    function ValidaClientePedido:boolean;
+    procedure CriaTabelaTemporaria;
+    procedure VisualizaInfoProduto;
+    procedure deletaProdutoGrid;
+    procedure editaProdutoGrid;
   public
     { Public declarations }
     property CurrentState: TFormState read FCurrentState write SetCurrentState; // Propriedade de estado
@@ -99,16 +114,6 @@ uses uProdutoPedido, uPedido;
 
 procedure TfrmPedidosVenda.AdicionaProdutoGrid(AProduto: TProduto ; AQuantidade: integer);
 begin
-  Query.close;
-  Query.SQL.Clear;
-
-  Query.SQL.Text := 'CREATE TEMPORARY TABLE IF NOT EXISTS tmp_Produtos ( '
-                   + 'Codigo int, '
-                   + 'Descricao varchar(50),'
-                   + 'Preco_Venda decimal(15,2),'
-                   + 'Quantidade int );';
-    Query.ExecSQL;
-
     Query.SQL.Clear;
     Query.SQL.Text := 'INSERT INTO tmp_Produtos (Codigo, Descricao, Preco_Venda, Quantidade) '
                      +'VALUES (:codigo,:descricao,:preco_venda, :Quantidade);' ;
@@ -154,6 +159,11 @@ var
   produto: TProduto;
   quantidade: Integer;
 begin
+  if not ValidaQtdProduto then
+    exit;
+  if not ValidaCodigoProduto then
+    exit;
+
   Quantidade:= StrToInt(edQtdProduto.Text);
   produto := TProduto.Create(
     StrToInt(edCodigoProduto.Text),
@@ -208,12 +218,8 @@ end;
 procedure TfrmPedidosVenda.btnSalvarPedidoClick(Sender: TObject);
 begin
   try
-    if cbClientes.ItemIndex < 0 then
-    begin
-      Application.MessageBox('O campo cliente é obrigatório!','Atenção',MB_ICONEXCLAMATION);
-      cbClientes.SetFocus;
+    if not ValidaClientePedido then
       exit;
-    end;
     if (SalvarPedido) then
     begin
       Application.MessageBox('Pedido Gravado com sucesso!','Sucesso');
@@ -265,9 +271,17 @@ procedure TfrmPedidosVenda.CarregaProduto(ACodigo: Integer);
 var
   produto:TProduto;
 begin
-  produto := produtoController.getProdutos(ACodigo).First;
-  edValorUnitarioProduto.Text := produto.PrecoVenda.ToString();
-  edDescricaoProduto.Text := produto.Descricao;
+  try
+    produto := produtoController.getProdutos(ACodigo).First;
+    edValorUnitarioProduto.Text := produto.PrecoVenda.ToString();
+    edDescricaoProduto.Text := produto.Descricao;
+  except
+    on e:exception do
+    begin
+      raise Exception.CreateFmt(e.Message,[e.Message]);
+    end;
+
+  end;
 end;
 
 procedure TfrmPedidosVenda.cbClientesSelect(Sender: TObject);
@@ -297,27 +311,54 @@ begin
   produtoController := TProdutoController.Create(FConnection);
 end;
 
+procedure TfrmPedidosVenda.CriaTabelaTemporaria;
+begin
+  Query.close;
+  Query.SQL.Clear;
+
+  Query.SQL.Text := 'CREATE TEMPORARY TABLE IF NOT EXISTS tmp_Produtos ( '
+                   + 'Codigo int, '
+                   + 'Descricao varchar(50),'
+                   + 'Preco_Venda decimal(15,2),'
+                   + 'Quantidade int );';
+    Query.ExecSQL;
+end;
+
 procedure TfrmPedidosVenda.dbgProdutosKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   Query : TFDQuery;
 begin
-  edCodigoProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('codigo').AsString;
-  edDescricaoProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('Descricao').AsString;
-  edValorUnitarioProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('Valor_Unitario').AsString;
-  edQtdProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('Quantidade').AsString;
+  VisualizaInfoProduto;
 
   if(key = VK_RETURN) then
   begin
-    SetCurrentState(csEdit);
+    editaProdutoGrid;
   end else
   if (key = VK_DELETE) then
   begin
-    if (MessageBox(Handle,PChar('Tem certeza que quer excluir o item de codigo: ' + edCodigoProduto.Text + ' ?'),'Confirmação de Exclusão', MB_YESNO+MB_ICONQUESTION ) = mrYes) then
-    begin
-      RemoveProdutoGrid(strToInt(edCodigoProduto.Text));
-    end;
+    deletaProdutoGrid;
     ExibeProdutosGrid;
+  end;
+end;
+
+procedure TfrmPedidosVenda.deletaProdutoGrid;
+begin
+  if FCurrentState = csEdit then
+  begin
+    Application.MessageBox('Não é possível deletar um produto enquanto estiver em modo de edição!','Atenção',MB_ICONEXCLAMATION);
+    exit;
+  end;
+  if (dbgProdutos.FieldCount <8) and (FCurrentState <> csEdit) then
+  begin
+    if ValidaCodigoProduto then
+      begin
+      if (MessageBox(Handle,PChar('Tem certeza que quer excluir o item de codigo: ' + edCodigoProduto.Text + ' ?'),
+      'Confirmação de Exclusão', MB_YESNO+MB_ICONQUESTION ) = mrYes) then
+      begin
+        RemoveProdutoGrid(strToInt(edCodigoProduto.Text));
+      end;
+    end;
   end;
 end;
 
@@ -345,7 +386,43 @@ end;
 
 procedure TfrmPedidosVenda.edCodigoProdutoExit(Sender: TObject);
 begin
-  CarregaProduto(StrToInt(edCodigoProduto.Text));
+  if edCoDigoProduto.Text<>'' then
+    CarregaProduto(StrToInt(edCodigoProduto.Text));
+end;
+
+procedure TfrmPedidosVenda.edCodigoProdutoKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  key:= SomenteNumero(Key);
+end;
+
+procedure TfrmPedidosVenda.editaProdutoGrid;
+begin
+  if (dbgProdutos.FieldCount <8) and (dbgProdutos.DataSource <> nil) and
+  (dbgProdutos.DataSource.DataSet.RecordCount > 0) then
+    SetCurrentState(csEdit);
+end;
+
+procedure TfrmPedidosVenda.edNumPedidoKeyPress(Sender: TObject; var Key: Char);
+begin
+  key:= SomenteNumero(Key);
+end;
+
+procedure TfrmPedidosVenda.edQtdProdutoKeyPress(Sender: TObject; var Key: Char);
+begin
+  key:= SomenteNumero(Key);
+end;
+
+procedure TfrmPedidosVenda.edValorUnitarioProdutoKeyPress(Sender: TObject;
+  var Key: Char);
+var
+  DecimalSeparator:Char;
+begin
+  DecimalSeparator := ',';
+  if (Key = DecimalSeparator) and (Pos(DecimalSeparator, TEdit(Sender).Text) > 0) then
+    Key := #0  // Impede a entrada de mais de um separador decimal
+  else if not (Key in ['0'..'9', DecimalSeparator, #8]) then
+    Key := #0;  // Impede a entrada de qualquer caractere não numérico ou decimal
 end;
 
 procedure TfrmPedidosVenda.ExibeProdutosGrid;
@@ -365,11 +442,19 @@ begin
   AtualizaValorTotalPedido;
 end;
 
+procedure TfrmPedidosVenda.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Showmessage('Desde já agradeço pela oportunidade!');
+  Showmessage('Conheça um pouco mais sobre mim a seguir!');
+  ShellExecute(0, 'open', 'http://sitevits015.vercel.app', nil, nil, SW_SHOWMAXIMIZED);
+end;
+
 procedure TfrmPedidosVenda.FormCreate(Sender: TObject);
 begin
   ConfigurarConexao;
   Query := TFDQuery.Create(nil);
   Query.Connection := FConnection;
+  CriaTabelaTemporaria;
   CreateControllers;
   CarregaClientesCombobox;
 end;
@@ -424,7 +509,7 @@ begin
   except
     on E:Exception do
     begin
-      raise Exception.Create('Error Message'+E.Message);
+      raise Exception.CreateFmt('É necessário inserir pelo menos um produto para salvar o pedido!',[E.Message]);
       result := false;
     end;
   end;
@@ -435,6 +520,17 @@ procedure TfrmPedidosVenda.SetCurrentState(Value: TFormState);
 begin
   FCurrentState := Value;
   UpdateForm;
+end;
+
+function TfrmPedidosVenda.SomenteNumero(key:Char):Char;
+begin
+  if not (Key in ['0'..'9',#8]) then
+  begin
+    Result := #0;
+  end else
+  begin
+    Result:= Key;
+  end;
 end;
 
 procedure TfrmPedidosVenda.ToggleExibitionPnCarregarPedidos;
@@ -451,18 +547,68 @@ begin
   begin
     btnAddProduto.Caption := 'Inserir Produto';
     edCodigoProduto.Enabled:= true;
-    edDescricaoProduto.Enabled:= true;
+    btnSalvarPedido.Enabled:= true;
   end else
   if FCurrentState = csEdit then
   begin
     edCodigoProduto.Enabled:= false;
-    edDescricaoProduto.Enabled:= false;
+    btnSalvarPedido.Enabled:= false;
     edValorUnitarioProduto.SetFocus;
     btnAddProduto.Caption := 'Alterar Produto';
   end;
 
   Application.ProcessMessages;
 
+end;
+
+function TfrmPedidosVenda.ValidaClientePedido: boolean;
+begin
+    if cbClientes.ItemIndex < 0 then
+    begin
+      Application.MessageBox('O campo cliente é obrigatório!','Atenção',MB_ICONEXCLAMATION);
+      cbClientes.SetFocus;
+      Result:= false;
+    end else
+    begin
+      Result:= true;
+    end;
+end;
+
+function TfrmPedidosVenda.ValidaCodigoProduto: boolean;
+begin
+  if edCodigoProduto.Text='' then
+  begin
+    Application.MessageBox('Informe o código do produto !','Atenção',MB_ICONEXCLAMATION);
+    edCodigoProduto.SetFocus;
+    Result:= false;
+  end else
+  begin
+    Result:= true;
+  end;
+end;
+
+function TfrmPedidosVenda.ValidaQtdProduto: boolean;
+begin
+  if edQtdProduto.Text='' then
+  begin
+    Application.MessageBox('Informe a quantidade do produto !','Atenção',MB_ICONEXCLAMATION);
+    edQtdProduto.SetFocus;
+    Result:= false;
+  end else
+  begin
+    Result:= true;
+  end;
+end;
+
+procedure TfrmPedidosVenda.VisualizaInfoProduto;
+begin
+  try
+    edCodigoProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('codigo').AsString;
+    edDescricaoProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('Descricao').AsString;
+    edValorUnitarioProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('Valor_Unitario').AsString;
+    edQtdProduto.Text:= dbgProdutos.DataSource.dataset.fieldbyname('Quantidade').AsString;
+  except
+  end;
 end;
 
 end.
