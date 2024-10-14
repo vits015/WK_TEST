@@ -241,7 +241,7 @@ object frmPedidosVenda: TfrmPedidosVenda
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Image1: TImage
+    object imgLogo: TImage
       Left = 303
       Top = 1
       Width = 202

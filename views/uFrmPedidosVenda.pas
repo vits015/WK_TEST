@@ -45,7 +45,7 @@ type
     btnLimparCliente: TButton;
     btnCancelarPedido: TButton;
     pnCliente: TPanel;
-    Image1: TImage;
+    imgLogo: TImage;
     procedure FormCreate(Sender: TObject);
     procedure edCodigoProdutoExit(Sender: TObject);
     procedure btnAddProdutoClick(Sender: TObject);
