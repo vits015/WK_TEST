@@ -13,11 +13,13 @@ object frmPedidosVenda: TfrmPedidosVenda
   OnCreate = FormCreate
   TextHeight = 15
   object pnProduto: TPanel
-    Left = 8
-    Top = 157
-    Width = 865
+    Left = 0
+    Top = 111
+    Width = 880
     Height = 97
+    Align = alTop
     TabOrder = 0
+    ExplicitTop = 110
     object lbCodProduto: TLabel
       Left = 9
       Top = 43
@@ -84,20 +86,30 @@ object frmPedidosVenda: TfrmPedidosVenda
       TabOrder = 3
     end
     object btnAddProduto: TButton
-      Left = 738
-      Top = 56
+      Left = 618
+      Top = 48
       Width = 111
       Height = 33
       Caption = 'Inserir Produto'
       TabOrder = 4
       OnClick = btnAddProdutoClick
     end
+    object btnSalvarPedido: TButton
+      Left = 768
+      Top = 48
+      Width = 105
+      Height = 41
+      Caption = 'Salvar Pedido'
+      TabOrder = 5
+      OnClick = btnSalvarPedidoClick
+    end
   end
   object dbgProdutos: TDBGrid
-    Left = 8
-    Top = 283
-    Width = 865
-    Height = 238
+    Left = 0
+    Top = 208
+    Width = 880
+    Height = 398
+    Align = alClient
     Color = cl3DDkShadow
     FixedColor = clMedGray
     TabOrder = 1
@@ -115,8 +127,7 @@ object frmPedidosVenda: TfrmPedidosVenda
     Height = 41
     Align = alBottom
     TabOrder = 2
-    ExplicitLeft = -3
-    ExplicitWidth = 876
+    ExplicitLeft = -1
     object Panel1: TPanel
       AlignWithMargins = True
       Left = 649
@@ -164,60 +175,16 @@ object frmPedidosVenda: TfrmPedidosVenda
       end
     end
   end
-  object btnSalvarPedido: TButton
-    Left = 767
-    Top = 559
-    Width = 105
-    Height = 41
-    Caption = 'Salvar Pedido'
-    TabOrder = 3
-    OnClick = btnSalvarPedidoClick
-  end
-  object pnCarregarPedido: TPanel
-    Left = 498
-    Top = 23
-    Width = 303
-    Height = 112
-    TabOrder = 4
-    object lbNumPedidoEdit: TLabel
-      Left = 160
-      Top = 32
-      Width = 54
-      Height = 15
-      Caption = 'N'#186' Pedido'
-    end
-    object btnCarregarPedido: TButton
-      Left = 20
-      Top = 8
-      Width = 105
-      Height = 39
-      Caption = 'Carregar Pedido'
-      TabOrder = 0
-      OnClick = btnCarregarPedidoClick
-    end
-    object edNumPedido: TEdit
-      Left = 155
-      Top = 53
-      Width = 121
-      Height = 23
-      TabOrder = 1
-    end
-    object btnCancelarPedido: TButton
-      Left = 20
-      Top = 64
-      Width = 105
-      Height = 39
-      Caption = 'Cancelar Pedido'
-      TabOrder = 2
-      OnClick = btnCancelarPedidoClick
-    end
-  end
   object pnCliente: TPanel
-    Left = 23
-    Top = 8
-    Width = 317
+    Left = 0
+    Top = 0
+    Width = 880
     Height = 111
-    TabOrder = 5
+    Align = alTop
+    TabOrder = 3
+    ExplicitLeft = 31
+    ExplicitTop = 23
+    ExplicitWidth = 317
     object lbClientes: TLabel
       Left = 17
       Top = 35
@@ -243,10 +210,49 @@ object frmPedidosVenda: TfrmPedidosVenda
       Text = 'cbClientes'
       OnSelect = cbClientesSelect
     end
+    object pnCarregarPedido: TPanel
+      Left = 505
+      Top = 1
+      Width = 374
+      Height = 109
+      Align = alRight
+      TabOrder = 2
+      object lbNumPedidoEdit: TLabel
+        Left = 160
+        Top = 32
+        Width = 54
+        Height = 15
+        Caption = 'N'#186' Pedido'
+      end
+      object btnCarregarPedido: TButton
+        Left = 20
+        Top = 8
+        Width = 105
+        Height = 39
+        Caption = 'Carregar Pedido'
+        TabOrder = 0
+        OnClick = btnCarregarPedidoClick
+      end
+      object edNumPedido: TEdit
+        Left = 155
+        Top = 53
+        Width = 121
+        Height = 23
+        TabOrder = 1
+      end
+      object btnCancelarPedido: TButton
+        Left = 20
+        Top = 64
+        Width = 105
+        Height = 39
+        Caption = 'Cancelar Pedido'
+        TabOrder = 2
+        OnClick = btnCancelarPedidoClick
+      end
+    end
   end
   object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
     VendorLib = 'LIBMYSQLx86.dll'
-    Left = 832
-    Top = 16
+    Left = 856
   end
 end
