@@ -484,9 +484,9 @@ end;
 
 procedure TfrmPedidosVenda.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-//  Showmessage('Desde já agradeço pela oportunidade!');
-//  Showmessage('Conheça um pouco mais sobre mim a seguir!');
-//  ShellExecute(0, 'open', 'http://sitevits015.vercel.app', nil, nil, SW_SHOWMAXIMIZED);
+  Showmessage('Desde já agradeço pela oportunidade!');
+  Showmessage('Conheça um pouco mais sobre mim a seguir!');
+  ShellExecute(0, 'open', 'http://sitevits015.vercel.app', nil, nil, SW_SHOWMAXIMIZED);
 end;
 
 procedure TfrmPedidosVenda.FormCreate(Sender: TObject);
