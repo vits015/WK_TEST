@@ -2,6 +2,7 @@ object frmPedidosVenda: TfrmPedidosVenda
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
   Caption = 'Pedidos de Venda'
   ClientHeight = 647
   ClientWidth = 880
@@ -12,6 +13,7 @@ object frmPedidosVenda: TfrmPedidosVenda
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poScreenCenter
+  Scaled = False
   OnClose = FormClose
   OnCreate = FormCreate
   TextHeight = 15
@@ -21,7 +23,7 @@ object frmPedidosVenda: TfrmPedidosVenda
     Width = 880
     Height = 97
     Align = alTop
-    TabOrder = 0
+    TabOrder = 1
     ExplicitWidth = 876
     object lbCodProduto: TLabel
       Left = 9
@@ -151,7 +153,7 @@ object frmPedidosVenda: TfrmPedidosVenda
     Align = alClient
     Color = cl3DDkShadow
     FixedColor = clMedGray
-    TabOrder = 1
+    TabOrder = 2
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
     TitleFont.Height = -12
@@ -166,23 +168,22 @@ object frmPedidosVenda: TfrmPedidosVenda
     Height = 47
     Margins.Top = 5
     Align = alBottom
-    TabOrder = 2
+    TabOrder = 3
     ExplicitTop = 599
     ExplicitWidth = 876
     object Panel1: TPanel
       AlignWithMargins = True
-      Left = 649
+      Left = 608
       Top = 4
-      Width = 227
+      Width = 268
       Height = 39
       Align = alRight
       TabOrder = 0
-      ExplicitLeft = 645
       object lbValorTotalPedido: TLabel
         AlignWithMargins = True
-        Left = 145
+        Left = 122
         Top = 6
-        Width = 78
+        Width = 142
         Height = 29
         Margins.Top = 5
         Align = alClient
@@ -194,29 +195,28 @@ object frmPedidosVenda: TfrmPedidosVenda
         Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitTop = 4
+        ExplicitLeft = 145
         ExplicitWidth = 38
         ExplicitHeight = 25
       end
-      object Label1: TLabel
+      object lbValorTotal: TLabel
         AlignWithMargins = True
         Left = 11
         Top = 6
-        Width = 128
+        Width = 105
         Height = 29
         Margins.Left = 10
         Margins.Top = 5
         Align = alLeft
         Alignment = taCenter
-        Caption = 'Valor Total: R$'
+        Caption = 'Valor Total: '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWhite
         Font.Height = -19
         Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitTop = 2
-        ExplicitHeight = 31
+        ExplicitHeight = 25
       end
     end
   end
@@ -226,7 +226,7 @@ object frmPedidosVenda: TfrmPedidosVenda
     Width = 880
     Height = 111
     Align = alTop
-    TabOrder = 3
+    TabOrder = 0
     ExplicitWidth = 876
     object lbClientes: TLabel
       Left = 17
@@ -243,10 +243,9 @@ object frmPedidosVenda: TfrmPedidosVenda
     end
     object imgLogo: TImage
       Left = 303
-      Top = 1
+      Top = 2
       Width = 202
       Height = 109
-      Align = alRight
       Picture.Data = {
         0954506E67496D61676589504E470D0A1A0A0000000D49484452000007080000
         02580806000001012282400000001974455874536F6674776172650041646F62
@@ -2809,6 +2808,7 @@ object frmPedidosVenda: TfrmPedidosVenda
       Cursor = crHandPoint
       Caption = 'Limpar Cliente'
       TabOrder = 1
+      TabStop = False
       OnClick = btnLimparClienteClick
     end
     object cbClientes: TComboBox
@@ -2849,6 +2849,7 @@ object frmPedidosVenda: TfrmPedidosVenda
         Cursor = crHandPoint
         Caption = 'Carregar Pedido'
         TabOrder = 0
+        TabStop = False
         OnClick = btnCarregarPedidoClick
       end
       object edNumPedido: TEdit
@@ -2856,7 +2857,7 @@ object frmPedidosVenda: TfrmPedidosVenda
         Top = 53
         Width = 121
         Height = 23
-        TabOrder = 1
+        TabOrder = 2
         OnKeyPress = edNumPedidoKeyPress
       end
       object btnCancelarPedido: TButton
@@ -2866,7 +2867,8 @@ object frmPedidosVenda: TfrmPedidosVenda
         Height = 39
         Cursor = crHandPoint
         Caption = 'Cancelar Pedido'
-        TabOrder = 2
+        TabOrder = 1
+        TabStop = False
         OnClick = btnCancelarPedidoClick
       end
     end

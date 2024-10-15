@@ -36,7 +36,7 @@ type
     pnRodape: TPanel;
     lbValorTotalPedido: TLabel;
     Panel1: TPanel;
-    Label1: TLabel;
+    lbValorTotal: TLabel;
     btnSalvarPedido: TButton;
     btnCarregarPedido: TButton;
     pnCarregarPedido: TPanel;
@@ -89,6 +89,7 @@ type
     procedure VisualizaInfoProduto;
     procedure deletaProdutoGrid;
     procedure editaProdutoGrid;
+    procedure LimpaProduto;
   public
     { Public declarations }
     property CurrentState: TFormState read FCurrentState write SetCurrentState; // Propriedade de estado
@@ -147,10 +148,10 @@ begin
   Query.Sql.Clear;
   Query.Close;
 
-  Query.SQL.Text := 'SELECT SUM((preco_venda*Quantidade)) Total_Pedido from tmp_Produtos';
+  Query.SQL.Text := 'SELECT REPLACE(FORMAT(SUM((preco_venda*Quantidade)),2),'+QuotedStr('.')+','+quotedStr(',')+') Total_Pedido from tmp_Produtos';
   Query.Open;
 
-  lbValorTotalPedido.Caption := Query.FieldByName('Total_Pedido').AsString;
+  lbValorTotalPedido.Caption := 'R$ '+Query.FieldByName('Total_Pedido').AsString;
 
 end;
 
@@ -166,9 +167,9 @@ begin
 
   Quantidade:= StrToInt(edQtdProduto.Text);
   produto := TProduto.Create(
-    StrToInt(edCodigoProduto.Text),
-    edDescricaoProduto.Text,
-    StrToFloat(edValorUnitarioProduto.Text) );
+                            StrToInt(edCodigoProduto.Text),
+                            edDescricaoProduto.Text,
+                            StrToFloat(edValorUnitarioProduto.Text) );
 
   if FCurrentState = csInsert then
   begin
@@ -178,6 +179,7 @@ begin
   begin
    AtualizaProdutoGrid(produto,quantidade);
   end;
+  LimpaProduto;
   ExibeProdutosGrid;
 end;
 
@@ -216,13 +218,16 @@ begin
 end;
 
 procedure TfrmPedidosVenda.btnSalvarPedidoClick(Sender: TObject);
+var
+  ultimoPedido:integer;
 begin
   try
     if not ValidaClientePedido then
       exit;
     if (SalvarPedido) then
     begin
-      Application.MessageBox('Pedido Gravado com sucesso!','Sucesso');
+      ultimoPedido:= pedidoController.getLastPedidoNumber;
+      Application.MessageBox(Pchar('Pedido '+UltimoPedido.ToString()+' Gravado com sucesso!'),'Sucesso');
       LimpaGrid;
       ExibeProdutosGrid;
     end;
@@ -253,9 +258,30 @@ begin
 end;
 
 procedure TfrmPedidosVenda.CarregaPedido;
+var
+  i:integer;
 begin
   try
     dbgProdutos.DataSource:= pedidoController.getPedido(StrToInt(edNumPedido.Text));
+
+    (dbgProdutos.DataSource.DataSet.FieldByName('valor_total_pedido') as TBCDField).DisplayFormat := 'R$ ###,##0.00';
+    (dbgProdutos.DataSource.DataSet.FieldByName('valor_unitario') as TBCDField).DisplayFormat := 'R$ ###,##0.00';
+    (dbgProdutos.DataSource.DataSet.FieldByName('valor_total_produto') as TBCDField).DisplayFormat := 'R$ ###,##0.00';
+
+    dbgProdutos.Columns[0].Title.Caption := 'Número do Pedido';
+    dbgProdutos.Columns[1].Title.Caption := 'Data de emissão';
+    dbgProdutos.Columns[2].Title.Caption := 'Código do Cliente';
+    dbgProdutos.Columns[3].Title.Caption := 'Valor total do Pedido';
+    dbgProdutos.Columns[4].Title.Caption := 'Código do produto';
+    dbgProdutos.Columns[5].Title.Caption := 'Quantidade';
+    dbgProdutos.Columns[6].Title.Caption := 'Valor Unitário';
+    dbgProdutos.Columns[7].Title.Caption := 'Valor Total do Produto';
+
+    for i := 0 to dbgProdutos.Columns.Count - 1 do
+    begin
+      dbgProdutos.Columns[i].Title.Font.Style := [fsBold];
+    end;
+
     lbValorTotalPedido.Caption:= dbgProdutos.Fields[3].Text;
     cbClientes.ItemIndex := StrToInt(dbgProdutos.Fields[2].Text);
   except
@@ -429,6 +455,7 @@ procedure TfrmPedidosVenda.ExibeProdutosGrid;
 var
   Query : TFDQuery;
   ds :TDataSource;
+  i:integer;
 begin
   Query := TFDQuery.Create(nil);
   Query.Connection := FConnection;
@@ -439,14 +466,27 @@ begin
   Query.Open;
 
   dbgProdutos.DataSource:= ds;
+  (ds.DataSet.FieldByName('Valor_unitario') as TBCDField).DisplayFormat := 'R$ ###,##0.00';
+  (ds.DataSet.FieldByName('Valor_Total') as TFMTBCDField).DisplayFormat := 'R$ ###,##0.00';
+
+  dbgProdutos.Columns[0].Title.Caption := 'Código';
+  dbgProdutos.Columns[1].Title.Caption := 'Descrição';
+  dbgProdutos.Columns[2].Title.Caption := 'Valor Unitário';
+  dbgProdutos.Columns[3].Title.Caption := 'Quantidade';
+  dbgProdutos.Columns[4].Title.Caption := 'Valor Total';
+  for i := 0 to dbgProdutos.Columns.Count - 1 do
+  begin
+    dbgProdutos.Columns[i].Title.Font.Style := [fsBold];
+  end;
+
   AtualizaValorTotalPedido;
 end;
 
 procedure TfrmPedidosVenda.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  Showmessage('Desde já agradeço pela oportunidade!');
-  Showmessage('Conheça um pouco mais sobre mim a seguir!');
-  ShellExecute(0, 'open', 'http://sitevits015.vercel.app', nil, nil, SW_SHOWMAXIMIZED);
+//  Showmessage('Desde já agradeço pela oportunidade!');
+//  Showmessage('Conheça um pouco mais sobre mim a seguir!');
+//  ShellExecute(0, 'open', 'http://sitevits015.vercel.app', nil, nil, SW_SHOWMAXIMIZED);
 end;
 
 procedure TfrmPedidosVenda.FormCreate(Sender: TObject);
@@ -465,6 +505,15 @@ begin
   Query.SQL.Clear;
   Query.SQL.Text := 'DELETE FROM tmp_produtos';
   Query.ExecSQL;
+end;
+
+procedure TfrmPedidosVenda.LimpaProduto;
+begin
+  edCodigoProduto.Text        := EmptyStr;
+  edDescricaoProduto.Text     := EmptyStr;
+  edQtdProduto.Text           := EmptyStr;
+  edValorUnitarioProduto.Text := EmptyStr;
+  edCodigoProduto.SetFocus;
 end;
 
 procedure TfrmPedidosVenda.RemoveProdutoGrid(ACodigo: Integer);
@@ -491,10 +540,13 @@ begin
     Pedido := TPedido.Create(0,
                             now(),
                             cbClientes.ItemIndex+1,
-                            StrToFloat(lbValorTotalPedido.Caption));
+                            StrToFloat(StringReplace(lbValorTotalPedido.Caption,'R$ ','',[rfReplaceAll])));
 
     Query.SQL.Text := 'SELECT Codigo, Descricao, preco_venda as Valor_unitario, Quantidade, (preco_venda*Quantidade) as Valor_Total FROM tmp_Produtos';
     Query.Open;
+
+    if Query.RecordCount < 1 then
+      raise Exception.Create('Para cadastrar um pedido é necessário incluir pelo menos um produto!');
 
     while not Query.eof do
     begin
