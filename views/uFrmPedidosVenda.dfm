@@ -179,6 +179,7 @@ object frmPedidosVenda: TfrmPedidosVenda
       Height = 39
       Align = alRight
       TabOrder = 0
+      ExplicitLeft = 604
       object lbValorTotalPedido: TLabel
         AlignWithMargins = True
         Left = 122
@@ -195,7 +196,6 @@ object frmPedidosVenda: TfrmPedidosVenda
         Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitLeft = 145
         ExplicitWidth = 38
         ExplicitHeight = 25
       end

@@ -85,6 +85,7 @@ type
     function ValidaQtdProduto:boolean;
     function ValidaCodigoProduto:boolean;
     function ValidaClientePedido:boolean;
+    function ValidaNumeroPedido:boolean;
     procedure CriaTabelaTemporaria;
     procedure VisualizaInfoProduto;
     procedure deletaProdutoGrid;
@@ -186,6 +187,9 @@ end;
 procedure TfrmPedidosVenda.btnCancelarPedidoClick(Sender: TObject);
 begin
   try
+    if not ValidaNumeroPedido then
+      exit;
+
     if (DeletePedido(StrToInt(edNumPedido.Text)) ) then
       Application.MessageBox('Pedido Excluído com sucesso!','Sucesso');
   except
@@ -632,6 +636,19 @@ begin
   begin
     Application.MessageBox('Informe o código do produto !','Atenção',MB_ICONEXCLAMATION);
     edCodigoProduto.SetFocus;
+    Result:= false;
+  end else
+  begin
+    Result:= true;
+  end;
+end;
+
+function TfrmPedidosVenda.ValidaNumeroPedido: boolean;
+begin
+  if edNumPedido.Text='' then
+  begin
+    Application.MessageBox('Informe o numero do pedido !','Atenção',MB_ICONEXCLAMATION);
+    edNumPedido.SetFocus;
     Result:= false;
   end else
   begin
